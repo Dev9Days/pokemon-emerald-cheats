@@ -46,6 +46,7 @@ jobs:
           VITE_GISCUS_BUG_CATEGORY_ID: ${{ vars.VITE_GISCUS_BUG_CATEGORY_ID }}
           VITE_GISCUS_REQUEST_CATEGORY: ${{ vars.VITE_GISCUS_REQUEST_CATEGORY }}
           VITE_GISCUS_REQUEST_CATEGORY_ID: ${{ vars.VITE_GISCUS_REQUEST_CATEGORY_ID }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

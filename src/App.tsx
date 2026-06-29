@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AppHeader } from "./components/AppHeader";
 import { BuildLoadingOverlay } from "./components/BuildLoadingOverlay";
 import { BrowserToolbar } from "./components/BrowserToolbar";
@@ -28,32 +28,32 @@ function getInitialBuild(): CheatBuildId | null {
 export function App() {
   const [selectedBuild, setSelectedBuild] = useState<CheatBuildId | null>(getInitialBuild);
   const [query, setQuery] = useState("");
+  const [filterQuery, setFilterQuery] = useState("");
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [isMobileOverlayOpen, setIsMobileOverlayOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isBuildLoading, setIsBuildLoading] = useState(false);
   const [buildLoadingLabel, setBuildLoadingLabel] = useState<string | null>(null);
+  const [isSearchSessionActive, setIsSearchSessionActive] = useState(false);
   const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
   const [isRomDragging, setIsRomDragging] = useState(false);
   const [romStatus, setRomStatus] = useState<string | null>(null);
-  const [searchLayerTop, setSearchLayerTop] = useState(0);
   const [toolbarHeight, setToolbarHeight] = useState(0);
-  const [toolbarOffsetTop, setToolbarOffsetTop] = useState(0);
   const buildLoadTokenRef = useRef(0);
   const dragDepthRef = useRef(0);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
 
   const build = selectedBuild ? builds.find((item) => item.id === selectedBuild)! : null;
   const groups = useMemo(() => (selectedBuild ? getCheatsForBuild(selectedBuild) : []), [selectedBuild]);
-  const normalizedQuery = query.trim().toLowerCase();
-  const deferredQuery = useDeferredValue(normalizedQuery);
-  const isSearching = deferredQuery.length > 0;
-  const filteredGroups = useMemo(() => (isSearching ? filterGroups(groups, deferredQuery) : []), [
+  const normalizedFilterQuery = filterQuery.trim().toLowerCase();
+  const hasFilterQuery = normalizedFilterQuery.length > 0;
+  const isSearchActive = isSearchSessionActive;
+  const filteredGroups = useMemo(() => (hasFilterQuery ? filterGroups(groups, normalizedFilterQuery) : []), [
+    hasFilterQuery,
     groups,
-    deferredQuery,
-    isSearching,
+    normalizedFilterQuery,
   ]);
-  const displayedGroups = isSearching ? filteredGroups : groups;
+  const displayedGroups = isSearchActive ? filteredGroups : groups;
   const sectionNavItems = useMemo(() => getSectionNavItems(displayedGroups), [displayedGroups]);
   const activeSectionTitle =
     sectionNavItems.find((item) => item.id === activeSectionId)?.title ?? sectionNavItems[0]?.title ?? "분류";
@@ -119,56 +119,11 @@ export function App() {
   }, [build]);
 
   useLayoutEffect(() => {
-    if (!isSearching) return;
-
-    const scrollY = window.scrollY;
-    const previousBodyPosition = document.body.style.position;
-    const previousBodyTop = document.body.style.top;
-    const previousBodyWidth = document.body.style.width;
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-
-    function updateSearchLayerTop() {
-      const toolbar = toolbarRef.current;
-      const toolbarRect = toolbar?.getBoundingClientRect();
-      setSearchLayerTop(Math.max(toolbar?.offsetHeight ?? 0, toolbarRect?.bottom ?? 0));
-    }
-
-    document.documentElement.classList.add("is-searching");
-    updateSearchLayerTop();
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    window.addEventListener("resize", updateSearchLayerTop);
-    window.visualViewport?.addEventListener("resize", updateSearchLayerTop);
-    window.visualViewport?.addEventListener("scroll", updateSearchLayerTop);
-
-    return () => {
-      window.removeEventListener("resize", updateSearchLayerTop);
-      window.visualViewport?.removeEventListener("resize", updateSearchLayerTop);
-      window.visualViewport?.removeEventListener("scroll", updateSearchLayerTop);
-      document.documentElement.classList.remove("is-searching");
-      document.body.style.position = previousBodyPosition;
-      document.body.style.top = previousBodyTop;
-      document.body.style.width = previousBodyWidth;
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      window.scrollTo(0, scrollY);
-    };
-  }, [isSearching]);
-
-  useLayoutEffect(() => {
     if (!isMobileSearchFocused) return;
 
     function updateToolbarMetrics() {
       const toolbarRect = toolbarRef.current?.getBoundingClientRect();
       setToolbarHeight(toolbarRect?.height ?? 0);
-      setToolbarOffsetTop(window.visualViewport?.offsetTop ?? 0);
-      if (isSearching) {
-        setSearchLayerTop(Math.max(0, toolbarRect?.bottom ?? 0));
-      }
     }
 
     updateToolbarMetrics();
@@ -177,12 +132,11 @@ export function App() {
     window.visualViewport?.addEventListener("scroll", updateToolbarMetrics);
 
     return () => {
-      setToolbarOffsetTop(0);
       window.removeEventListener("resize", updateToolbarMetrics);
       window.visualViewport?.removeEventListener("resize", updateToolbarMetrics);
       window.visualViewport?.removeEventListener("scroll", updateToolbarMetrics);
     };
-  }, [isMobileSearchFocused, isSearching]);
+  }, [isMobileSearchFocused, isSearchActive]);
 
   useEffect(() => {
     function hasFiles(event: DragEvent) {
@@ -240,7 +194,7 @@ export function App() {
     buildLoadTokenRef.current = token;
     setBuildLoadingLabel(nextBuild ? `${nextBuild.label} 불러오는 중` : "치트 목록 불러오는 중");
     setIsBuildLoading(true);
-    setQuery("");
+    resetSearch();
     setIsMobileOverlayOpen(false);
     setIsMobileSearchFocused(false);
 
@@ -280,6 +234,33 @@ export function App() {
     scrollToSection(id, () => setActiveSectionId(id));
   }
 
+  function resetSearch() {
+    setIsSearchSessionActive(false);
+    setQuery("");
+    setFilterQuery("");
+  }
+
+  function handleSearchQueryChange(nextQuery: string, isComposing: boolean) {
+    setQuery(nextQuery);
+
+    if (nextQuery.length > 0 || isComposing) {
+      setIsSearchSessionActive(true);
+    }
+
+    if (!isComposing) {
+      setFilterQuery(nextQuery);
+    }
+  }
+
+  function handleSearchCompositionEnd(nextQuery: string) {
+    setQuery(nextQuery);
+    setFilterQuery(nextQuery);
+
+    if (nextQuery.length > 0) {
+      setIsSearchSessionActive(true);
+    }
+  }
+
   return (
     <main className="app-shell" style={{ "--toolbar-height": `${toolbarHeight}px` } as CSSProperties}>
       <AppHeader
@@ -297,20 +278,21 @@ export function App() {
           <BrowserToolbar
             activeSectionTitle={activeSectionTitle}
             isInputFocused={isMobileSearchFocused}
-            isSearching={isSearching}
-            onClearSearch={() => setQuery("")}
+            isSearching={isSearchActive}
+            onClearSearch={resetSearch}
             onOpenComments={() => setIsCommentsOpen(true)}
             onOpenNavigation={() => setIsMobileOverlayOpen(true)}
-            onQueryChange={setQuery}
+            onQueryChange={handleSearchQueryChange}
+            onSearchCompositionEnd={handleSearchCompositionEnd}
+            onSearchCompositionStart={() => setIsSearchSessionActive(true)}
             onSearchBlur={() => setIsMobileSearchFocused(false)}
             onSearchFocus={() => setIsMobileSearchFocused(true)}
             query={query}
-            toolbarOffsetTop={toolbarOffsetTop}
             toolbarRef={toolbarRef}
           />
           <div
             className="toolbar-spacer"
-            style={{ height: isMobileSearchFocused ? `${toolbarHeight}px` : undefined }}
+            style={{ height: isSearchActive ? `${toolbarHeight}px` : undefined }}
             aria-hidden="true"
           />
 
@@ -325,7 +307,12 @@ export function App() {
             ) : null}
           </div>
 
-          <SearchResultsLayer groups={filteredGroups} isSearching={isSearching} searchLayerTop={searchLayerTop} />
+          <SearchResultsLayer
+            groups={filteredGroups}
+            hasQuery={hasFilterQuery}
+            isSearching={isSearchActive}
+            resetKey={normalizedFilterQuery}
+          />
 
           {isMobileOverlayOpen ? (
             <MobileSectionOverlay

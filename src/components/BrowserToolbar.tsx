@@ -1,5 +1,5 @@
 import { MessageCircle } from "lucide-react";
-import type { CSSProperties, RefObject } from "react";
+import type { RefObject } from "react";
 import { SearchBox } from "./SearchBox";
 
 type BrowserToolbarProps = {
@@ -7,13 +7,14 @@ type BrowserToolbarProps = {
   isInputFocused: boolean;
   isSearching: boolean;
   onClearSearch: () => void;
+  onSearchCompositionEnd: (query: string) => void;
+  onSearchCompositionStart: () => void;
   onOpenComments: () => void;
   onOpenNavigation: () => void;
   onSearchBlur: () => void;
   onSearchFocus: () => void;
-  onQueryChange: (query: string) => void;
+  onQueryChange: (query: string, isComposing: boolean) => void;
   query: string;
-  toolbarOffsetTop: number;
   toolbarRef: RefObject<HTMLDivElement | null>;
 };
 
@@ -22,27 +23,34 @@ export function BrowserToolbar({
   isInputFocused,
   isSearching,
   onClearSearch,
+  onSearchCompositionEnd,
+  onSearchCompositionStart,
   onOpenComments,
   onOpenNavigation,
   onSearchBlur,
   onSearchFocus,
   onQueryChange,
   query,
-  toolbarOffsetTop,
   toolbarRef,
 }: BrowserToolbarProps) {
   return (
     <div
       ref={toolbarRef}
-      className={`toolbar${isInputFocused ? " is-input-focused" : ""}`}
-      style={{ "--toolbar-offset-top": `${toolbarOffsetTop}px` } as CSSProperties}
+      className={`toolbar${isInputFocused ? " is-input-focused" : ""}${isSearching ? " is-searching" : ""}`}
     >
       <div className="desktop-search">
         <SearchBox query={query} onQueryChange={onQueryChange} />
       </div>
       <div className="mobile-controls">
         <div className="mobile-search-row">
-          <SearchBox query={query} onBlur={onSearchBlur} onFocus={onSearchFocus} onQueryChange={onQueryChange} />
+          <SearchBox
+            query={query}
+            onBlur={onSearchBlur}
+            onCompositionEnd={onSearchCompositionEnd}
+            onCompositionStart={onSearchCompositionStart}
+            onFocus={onSearchFocus}
+            onQueryChange={onQueryChange}
+          />
           <button className="mobile-comment-button" type="button" onClick={onOpenComments} aria-label="댓글 열기">
             <MessageCircle size={17} />
           </button>
