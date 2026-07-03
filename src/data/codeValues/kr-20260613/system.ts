@@ -10,22 +10,11 @@ export const codeValuesKr20260613System: CheatCodeValues = {
     ],
     "해안시티-타이드립호-활성화": ["60C866BB 402DCF8E"],
     "시간-재-설정": [
-      "A5F8ACED C86A84BD",
+      "3CDE8216 3875A404",
       "FB7B1AA0 9D9CE703",
       "2BBD01A0 51090D37",
-      "7A2C40E4 06AFEFA1",
+      "87300C4B C4F3F915",
       "5644AAAF 5753246E"
-    ],
-    "항상-내-턴": [
-      "DFAB22B9 C9770B21",
-      "CA14EA4B 96529CFF",
-      "547F1ECB 8EBA47AC",
-      "889C5748 0D05735A",
-    ],
-    "배틀-프론티어-배틀-포인트": [
-      "A5F8ACED C86A84BD",
-      "0E0E8DB6 93CE0CF7",
-      "0D8BD8AA BC995922",
     ],
     "소지금-최대": ["68836B0F EBACC200"],
     "플레이어-이름-변경": [
@@ -89,10 +78,6 @@ export const codeValuesKr20260613System: CheatCodeValues = {
       "91573938 B6F94DB8",
       "67A75F44 DB3BCBF3",
     ],
-    "battle.exp.250": ["D79508D3 2B40C428", "E3C007D6 F2A82C2F"],
-    "battle.exp.500": ["BDF85061 4702BDFD", "666B7C0C 20C58924"],
-    "battle.exp.1000": ["F11F9B7C 950A56F5", "F1D8F013 3844264B"],
-    "battle.exp.9999": ["C3369CB0 C6BBFE4B", "3C6DEDC4 71C316FC"],
     "system.dex-event.mystery-gift-ticket.npc": [
       "B6B5E71B 171040C4",
       "AD86124F 2823D8DA",

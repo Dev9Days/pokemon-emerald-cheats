@@ -47,7 +47,8 @@ export function App() {
   const groups = useMemo(() => (selectedBuild ? getCheatsForBuild(selectedBuild) : []), [selectedBuild]);
   const normalizedFilterQuery = filterQuery.trim().toLowerCase();
   const hasFilterQuery = normalizedFilterQuery.length > 0;
-  const isSearchActive = isSearchSessionActive;
+  const hasSearchText = query.trim().length > 0 || hasFilterQuery;
+  const isSearchActive = isSearchSessionActive && hasSearchText;
   const filteredGroups = useMemo(() => (hasFilterQuery ? filterGroups(groups, normalizedFilterQuery) : []), [
     hasFilterQuery,
     groups,
@@ -241,23 +242,31 @@ export function App() {
   }
 
   function handleSearchQueryChange(nextQuery: string, isComposing: boolean) {
+    const nextFilterQuery = nextQuery.trim();
+
     setQuery(nextQuery);
 
-    if (nextQuery.length > 0 || isComposing) {
+    if (nextFilterQuery.length > 0) {
       setIsSearchSessionActive(true);
+    } else if (!isComposing) {
+      setIsSearchSessionActive(false);
     }
 
     if (!isComposing) {
-      setFilterQuery(nextQuery);
+      setFilterQuery(nextFilterQuery);
     }
   }
 
   function handleSearchCompositionEnd(nextQuery: string) {
-    setQuery(nextQuery);
-    setFilterQuery(nextQuery);
+    const nextFilterQuery = nextQuery.trim();
 
-    if (nextQuery.length > 0) {
+    setQuery(nextQuery);
+    setFilterQuery(nextFilterQuery);
+
+    if (nextFilterQuery.length > 0) {
       setIsSearchSessionActive(true);
+    } else {
+      setIsSearchSessionActive(false);
     }
   }
 

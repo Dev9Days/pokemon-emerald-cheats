@@ -26,7 +26,8 @@ export function isSingleCheatGroup(group: CheatGroup): boolean {
 }
 
 function filterCheat(cheat: CheatEntry, query: string): CheatEntry | null {
-  const ownText = [cheat.id, cheat.title, cheat.codeType, cheat.note, ...cheat.codes]
+  const ownBadgeText = cheat.badges?.flatMap((badge) => [badge.label, badge.description]) ?? [];
+  const ownText = [cheat.id, cheat.title, cheat.codeType, cheat.note, ...ownBadgeText, ...cheat.codes]
     .filter(Boolean)
     .join("\n")
     .toLowerCase();
@@ -34,7 +35,14 @@ function filterCheat(cheat: CheatEntry, query: string): CheatEntry | null {
   if (ownText.includes(query)) return cheat;
 
   const variants = cheat.variants?.filter((variant) =>
-    [variant.id, variant.title, variant.subtitle, variant.note, ...variant.codes]
+    [
+      variant.id,
+      variant.title,
+      variant.subtitle,
+      variant.note,
+      ...(variant.badges?.flatMap((badge) => [badge.label, badge.description]) ?? []),
+      ...variant.codes,
+    ]
       .filter(Boolean)
       .join("\n")
       .toLowerCase()

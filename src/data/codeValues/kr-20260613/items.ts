@@ -22,7 +22,8 @@ export const codeValuesKr20260613Items: CheatCodeValues = {
     },
     "items.pc.add.generated": {
       kind: "item",
-      address: "82026040"
+      address: "820260BC",
+      extraCodes: ["820260BE 03E7"]
     }
   }
 };

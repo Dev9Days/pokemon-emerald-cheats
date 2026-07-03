@@ -6,6 +6,24 @@ import { CopyButton } from "./CopyButton";
 const VARIANT_FILTER_THRESHOLD = 20;
 const VARIANT_SCROLL_THRESHOLD = 4;
 
+function CheatBadges({ badges }: { badges?: CheatEntry["badges"] }) {
+  if (!badges?.length) return null;
+
+  return (
+    <>
+      {badges.map((badge) => (
+        <span
+          key={`${badge.kind}:${badge.label}`}
+          className={`cheat-badge cheat-badge--${badge.kind}`}
+          title={badge.description}
+        >
+          {badge.label}
+        </span>
+      ))}
+    </>
+  );
+}
+
 const VariantRow = memo(function VariantRow({ variant }: { variant: CheatVariant }) {
   const codeText = variant.codes.join("\n");
 
@@ -13,6 +31,11 @@ const VariantRow = memo(function VariantRow({ variant }: { variant: CheatVariant
     <div className="variant-row">
       <div>
         <strong>{variant.title}</strong>
+        {variant.badges?.length ? (
+          <div className="cheat-meta cheat-meta--variant">
+            <CheatBadges badges={variant.badges} />
+          </div>
+        ) : null}
         {variant.subtitle ? <span>{variant.subtitle}</span> : null}
         {variant.note ? <span>{variant.note}</span> : null}
       </div>
@@ -47,6 +70,7 @@ export const CheatCard = memo(function CheatCard({ cheat }: { cheat: CheatEntry 
           <h3>{cheat.title}</h3>
           <div className="cheat-meta">
             <span>{cheat.codeType}</span>
+            <CheatBadges badges={cheat.badges} />
           </div>
         </div>
         {!cheat.variants ? <CopyButton label={cheat.title} text={codeText} /> : null}

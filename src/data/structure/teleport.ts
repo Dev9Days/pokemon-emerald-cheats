@@ -54,7 +54,7 @@ export const teleportGroup: CheatGroup = {
           title: "서핑(뱃지X)",
           codeType: "Action Replay MAX",
           codes: [],
-          note: "R+SELECT를 동시에 누르세요.\n등록된 편의 도구를 해제한 다음 실행하세요."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요."
         },
         {
           id: "어디서든-공중-날기-뱃지x",

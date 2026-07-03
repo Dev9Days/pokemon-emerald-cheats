@@ -13,21 +13,21 @@ export const remoteGroup: CheatGroup = {
           title: "포켓몬 회복(원격 센터)",
           codeType: "Action Replay MAX",
           codes: [],
-          note: "L+SELECT를 동시에 누르세요.\n등록된 편의 도구를 해제한 다음 실행하세요.\n별다른 반응이 없지만 회복이 완료되었습니다."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요.\n별다른 반응이 없지만 회복이 완료되었습니다."
         },
         {
           id: "pc-접근",
           title: "PC 접근",
           codeType: "Action Replay MAX",
           codes: [],
-          note: "L+SELECT를 동시에 누르세요.\n등록된 편의 도구를 해제한 다음 실행하세요.\n맵에 통과할 수 없는 블록이 캐릭터가 보는 방향에 따라 다른 위치에 생깁니다. 이동 경로를 막지 않게 주의하세요!\n건물을 들어갔다 오면 사라집니다."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요.\n맵에 통과할 수 없는 블록이 캐릭터가 보는 방향에 따라 다른 위치에 생깁니다. 이동 경로를 막지 않게 주의하세요!\n건물을 들어갔다 오면 사라집니다."
         },
         {
           id: "기술-지우기",
           title: "기술 지우기",
           codeType: "Action Replay MAX",
           codes: [],
-          note: "L+SELECT를 동시에 누르세요.\n등록된 편의 도구를 해제한 다음 실행하세요."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요."
         },
       ]
     },
@@ -162,7 +162,7 @@ export const remoteGroup: CheatGroup = {
               codes: []
             }
           ],
-          note: "L+SELECT를 동시에 누르세요. 등록된 편의 도구를 해제한 다음 실행하세요."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요."
         }
       ]
     }

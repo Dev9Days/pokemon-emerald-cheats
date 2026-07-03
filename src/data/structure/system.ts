@@ -65,7 +65,7 @@ export const systemGroup: CheatGroup = {
               codes: []
             }
           ],
-          note: "L+SELECT를 동시에 누르세요. 등록된 편의 도구를 해제한 다음 실행하세요.\n대화창을 닫으면 배지를 얻고 해당 비전기술을 사용할 수 있게 됩니다."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요.\n대화창을 닫으면 배지를 얻고 해당 비전기술을 사용할 수 있게 됩니다."
         }
       ]
     },
@@ -78,7 +78,7 @@ export const systemGroup: CheatGroup = {
           title: "트레이너&관장과 재 전투",
           codeType: "Action Replay MAX",
           codes: [],
-          note: "대화 도중 L버튼을 누르세요. 대화창을 닫으면 전투가 시작됩니다.\n무로마을(Dewford Town) 관장에게 사용하지 마세요. 더 이상 게임 진행이 불가능해집니다."
+          note: "대화창을 닫으면 전투가 시작됩니다.\n무로마을(Dewford Town) 관장에게 사용하지 마세요. 더 이상 게임 진행이 불가능해집니다."
         },
         {
           id: "해안시티-타이드립호-활성화",
@@ -93,57 +93,8 @@ export const systemGroup: CheatGroup = {
           codeType: "Action Replay MAX",
           codes: [],
           note: `가급적 저장을 하세요.
-                 조건: 처음 시계를 맞춘 후 아래층에 내려가 대화를 마친 직후부터 사용 가능합니다.
-                 대화 도중 L버튼을 누르세요. 대화 창을 닫으면 시간 변경 창이 등장, 바로 R버튼을 누르고 원하는 시간으로 변경합니다.
-                 순서를 지키지 않을 경우 게임 진행이 막힐 수 있으니 정확한 순서를 지켜주세요.`
-        }
-      ]
-    },
-    {
-      id: "system.battle",
-      title: "전투 시스템",
-      cheats: [
-        {
-          id: "항상-내-턴",
-          title: "항상 내 턴",
-          codeType: "Action Replay MAX",
-          codes: []
-        },
-        {
-          id: "전투-후-경험치",
-          title: "전투 후 경험치",
-          codeType: "Action Replay MAX",
-          codes: [],
-          variants: [
-            {
-              id: "battle.exp.250",
-              title: "경험치 250",
-              codes: []
-            },
-            {
-              id: "battle.exp.500",
-              title: "경험치 500",
-              codes: []
-            },
-            {
-              id: "battle.exp.1000",
-              title: "경험치 1000",
-              codes: []
-            },
-            {
-              id: "battle.exp.9999",
-              title: "경험치 9999",
-              codes: []
-            }
-          ],
-          note: "레벨업을 멈추고 싶다면 치트를 비활성화 하세요\n비활성화시 잔여 경험치만큼 더 레벨업을 하고 멈춥니다"
-        },
-        {
-          id: "배틀-프론티어-배틀-포인트",
-          title: "배틀 프론티어 배틀 포인트",
-          codeType: "Action Replay MAX",
-          codes: [],
-          note: "대화 도중 L버튼을 누르세요. 누르고 있는 동안 계속해서 포인트를 획득합니다.(L버튼 누르고 있으면서 A버튼 연타)"
+                 등록된 편의 도구를 해제한 다음 실행하세요.
+                 조건: 처음 시계를 맞춘 후 아래층에 내려가 대화를 마친 직후부터 사용 가능합니다.`
         }
       ]
     },
@@ -164,7 +115,14 @@ export const systemGroup: CheatGroup = {
           codeType: "Action Replay MAX",
           codes: [],
           note: "가급적 저장을 하세요.\n트레이너 카드를 확인하세요.\n이름 변경 중간에 치트를 절대 비활성화 하지 마세요. 진행 상황이 리셋됩니다."
-        }
+        },
+        {
+          id: "배틀-프론티어-배틀-포인트",
+          title: "배틀 프론티어 배틀 포인트",
+          codeType: "Action Replay MAX",
+          codes: [],
+          note: "L버튼을 누르고 있는 동안 계속해서 포인트를 획득합니다.(L버튼 누른 상태로 A버튼 연타)",
+        },
       ]
     },
     {
@@ -182,7 +140,7 @@ export const systemGroup: CheatGroup = {
           title: "이상한 소포 활성화 / (Mystery Gift)",
           codeType: "Action Replay MAX",
           codes: [],
-          note: "L+SELECT를 동시에 누르세요.\n등록된 편의 도구를 해제한 다음 실행하세요."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요."
         },
         {
           id: "system.dex-event.mystery-gift-ticket",
@@ -222,14 +180,14 @@ export const systemGroup: CheatGroup = {
               codes: []
             }
           ],
-          note: "L+SELECT를 동시에 누르세요.\n등록된 편의 도구를 해제한 다음 실행하세요."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요."
         },
         {
           id: "전국-도감-활성화",
           title: "전국 도감 활성화",
           codeType: "Action Replay MAX",
           codes: [],
-          note: "L+SELECT를 동시에 누르세요.\n등록된 편의 도구를 해제한 다음 실행하세요."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요."
         },
         {
           id: "도감-완성",

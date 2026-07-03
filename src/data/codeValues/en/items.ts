@@ -22,7 +22,8 @@ export const codeValuesEnItems: CheatCodeValues = {
     },
     "items.pc.add.generated": {
       kind: "item",
-      address: "82025EE0"
+      address: "82025F5C",
+      extraCodes: ["82025F5E 0063"]
     }
   }
 };

@@ -39,7 +39,12 @@ export function BrowserToolbar({
       className={`toolbar${isInputFocused ? " is-input-focused" : ""}${isSearching ? " is-searching" : ""}`}
     >
       <div className="desktop-search">
-        <SearchBox query={query} onQueryChange={onQueryChange} />
+        <SearchBox
+          query={query}
+          onCompositionEnd={onSearchCompositionEnd}
+          onCompositionStart={onSearchCompositionStart}
+          onQueryChange={onQueryChange}
+        />
       </div>
       <div className="mobile-controls">
         <div className="mobile-search-row">

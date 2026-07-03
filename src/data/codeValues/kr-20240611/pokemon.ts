@@ -2,7 +2,8 @@ import type { CheatCodeValues } from "../../cheatDataBuilder";
 
 export const codeValuesKr20240611Pokemon: CheatCodeValues = {
   entries: {
-    "pokemon.master-code": ["80BEBC0D 5E62651B"],
+    // "pokemon.master-code": ["80BEBC0D 5E62651B"],
+    "pokemon.master-code": ["D8BAE4D9 4864DCE5"],
     "pokemon.starter.extra": [
       "8EAB995E 5C493B7C",
       "A1AF2A06 C60CEADD",
@@ -47,16 +48,6 @@ export const codeValuesKr20240611Pokemon: CheatCodeValues = {
       "AA7C07D3 0D67D1F8",
       "2856632F F6A3657A",
       "65DA389A 09D8882C",
-    ],
-    "무한-pp": ["0CDD8D09 DE99330A"],
-    "상대방-포켓몬-잡기": [
-      "2EA41C5B 7120B2AC",
-      "8E883EFF 92E9660D",
-      "B6C5368A 08BE8FF4",
-      "5A6217E3 FDCAEC2F",
-    ],
-    "기술-비전머신-아무거나-교체하기-마스터-코드": [
-      "D8BAE4D9 4864DCE5",
     ],
     "비전기술-덮어쓰기": [
       "3B1AD29E 8DA55BED",

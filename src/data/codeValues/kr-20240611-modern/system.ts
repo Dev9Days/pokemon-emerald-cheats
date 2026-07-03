@@ -14,22 +14,11 @@ export const codeValuesKr20240611ModernSystem: CheatCodeValues = {
       "E2102722 AAA2CAA4"
     ],
     "시간-재-설정": [
-      "A5F8ACED C86A84BD",
+      "3CDE8216 3875A404",
       "BF336799 9CB56BBD",
       "2BBD01A0 51090D37",
-      "7A2C40E4 06AFEFA1",
+      "ED6BEB09 186CAEA3",
       "5644AAAF 5753246E"
-    ],
-    "항상-내-턴": [
-      "DFAB22B9 C9770B21",
-      "CA14EA4B 96529CFF",
-      "547F1ECB 8EBA47AC",
-      "889C5748 0D05735A"
-    ],
-    "배틀-프론티어-배틀-포인트": [
-      "A5F8ACED C86A84BD",
-      "7F578734 A336D545",
-      "0D8BD8AA BC995922"
     ],
     "소지금-최대": [
       "BF1A846E 95F920F1"
@@ -97,22 +86,6 @@ export const codeValuesKr20240611ModernSystem: CheatCodeValues = {
       "3CDE8216 3875A404",
       "11019621 7F6728E7",
       "67A75F44 DB3BCBF3"
-    ],
-    "battle.exp.250": [
-      "D79508D3 2B40C428",
-      "E3C007D6 F2A82C2F"
-    ],
-    "battle.exp.500": [
-      "BDF85061 4702BDFD",
-      "666B7C0C 20C58924"
-    ],
-    "battle.exp.1000": [
-      "F11F9B7C 950A56F5",
-      "F1D8F013 3844264B"
-    ],
-    "battle.exp.9999": [
-      "C3369CB0 C6BBFE4B",
-      "3C6DEDC4 71C316FC"
     ],
     "system.dex-event.mystery-gift-ticket.npc": [
       "8A5A8AEF 3353735C",

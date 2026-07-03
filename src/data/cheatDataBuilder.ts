@@ -1,5 +1,6 @@
 import type { CheatEntry, CheatGroup, CheatVariant } from "../types/cheat";
 import { itemCatalog, moveCatalog, natureCatalog, pokemonSpeciesCatalog, teleportLocationCatalog } from "./catalogs";
+import { getEntryBadges, mergeCheatBadges } from "./cheatMetadata";
 
 type AddressCatalogKind = "item" | "move" | "pokemonSpecies" | "teleport";
 
@@ -7,6 +8,7 @@ export type CatalogCodeValue =
   | {
       kind: AddressCatalogKind;
       address: string;
+      extraCodes?: string[];
     }
   | {
       kind: "nature";
@@ -103,27 +105,28 @@ function applyCatalogVariantCodes(variant: CheatVariant, spec: CatalogCodeValue)
   const value = getCatalogValue(spec, variant.id);
   return {
     ...variant,
-    codes: value ? [`${spec.address} ${value}`] : [],
+    codes: value ? [`${spec.address} ${value}`, ...(spec.extraCodes ?? [])] : [],
   };
 }
 
-function applyEntryCodes(entry: CheatEntry, values: CheatCodeValues): CheatEntry {
+function applyEntryCodes(entry: CheatEntry, values: CheatCodeValues, rootGroupId: string): CheatEntry {
   const catalogSpec = values.catalogs?.[entry.id];
 
   return {
     ...entry,
     codes: cloneCodes(values.entries[entry.id] ?? []),
+    badges: mergeCheatBadges(entry.badges, getEntryBadges(entry, rootGroupId)),
     variants: entry.variants?.map((variant) =>
       catalogSpec ? applyCatalogVariantCodes(variant, catalogSpec) : applyVariantCodes(variant, values),
     ),
   };
 }
 
-function applyGroupCodes(group: CheatGroup, values: CheatCodeValues): CheatGroup {
+function applyGroupCodes(group: CheatGroup, values: CheatCodeValues, rootGroupId = group.id): CheatGroup {
   return {
     ...group,
-    cheats: group.cheats?.map((entry) => applyEntryCodes(entry, values)),
-    children: group.children?.map((child) => applyGroupCodes(child, values)),
+    cheats: group.cheats?.map((entry) => applyEntryCodes(entry, values, rootGroupId)),
+    children: group.children?.map((child) => applyGroupCodes(child, values, rootGroupId)),
   };
 }
 

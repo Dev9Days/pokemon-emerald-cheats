@@ -9,45 +9,19 @@ import {
 export const pokemonGroup: CheatGroup = {
   id: "pokemon",
   title: "포켓몬",
-  cheats: [
-    {
-      id: "pokemon.master-code",
-      title: "포켓몬 관련 마스터 코드",
-      codeType: "Action Replay MAX",
-      codes: [],
-      note: "포켓몬 관련 코드를 사용하려면 먼저 적용하세요."
-    }
-  ],
+  cheats: [],
   children: [
-    {
-      id: "pokemon.battle",
-      title: "전투 관련",
-      cheats: [
-        {
-          id: "무한-pp",
-          title: "무한 PP",
-          codeType: "Action Replay MAX",
-          codes: [],
-          note: "기술 사용 횟수 무제한"
-        },
-        {
-          id: "상대방-포켓몬-잡기",
-          title: "상대방 포켓몬 잡기",
-          codeType: "Action Replay MAX",
-          codes: [],
-          note: "L+R 버튼을 동시에 누른 상태로 몬스터볼을 던지세요. 던지자 마자 떼도 괜찮습니다."
-        }
-      ]
-    },
     {
       id: "pokemon.move-edit",
       title: "기술 편집",
       cheats: [
         {
-          id: "기술-비전머신-아무거나-교체하기-마스터-코드",
-          title: "기술/비전머신 아무거나 교체하기: 마스터 코드",
-          codeType: "Action Replay MAX",
-          codes: []
+          id: "move.edit.generated",
+          title: "교체할 기술 선택",
+          codeType: "Codebreaker",
+          codes: [],
+          variants: createMoveStructureVariants(),
+          note: "기술을 4개 배운 포켓몬에게 남는 기술/비전머신을 사용한 뒤, 치트를 사용하세요."
         },
         {
           id: "비전기술-덮어쓰기",
@@ -55,14 +29,6 @@ export const pokemonGroup: CheatGroup = {
           codeType: "Action Replay MAX",
           codes: []
         },
-        {
-          id: "move.edit.generated",
-          title: "교체할 기술 선택(마스터 코드 필요)",
-          codeType: "Codebreaker",
-          codes: [],
-          variants: createMoveStructureVariants(),
-          note: "기술을 4개 배운 포켓몬에게 남는 기술/비전머신을 사용한 뒤, 변경할 기술을 선택하고 교체하세요.\n기술 이름이 바로 바뀌지 않아도 정상입니다."
-        }
       ]
     },
     {
@@ -372,7 +338,7 @@ export const pokemonGroup: CheatGroup = {
               title: "스타팅 포켓몬 추가 획득",
               codeType: "Action Replay MAX",
               codes: [],
-              note: "L+R+UP버튼을 동시에 누르세요.\n화면이 바뀌지 않는다면 A키를 누르세요.\n\"스타팅 포켓몬 변경\" 치트와 함께 사용하세요.\n뮤와 테오키스는 전투에서 사용할 수 없습니다."
+              note: "화면이 바뀌지 않는다면 A키를 누르세요.\n\"스타팅 포켓몬 변경\" 치트와 함께 사용하세요.\n뮤와 테오키스는 전투에서 사용할 수 없습니다."
             }
           ]
         },
@@ -412,10 +378,10 @@ export const pokemonGroup: CheatGroup = {
           cheats: [
             {
               id: "pokemon.starter.gen2.required",
-              title: "이 코드 먼저 추가하세요",
+              title: "2세대 스타팅 필수 코드",
               codeType: "Action Replay MAX",
               codes: [],
-              note: "선택을 위한 필수 코드입니다.\n아래 포켓몬을 추가하고 L+R+Down 키를 동시에 누르세요."
+              note: "선택을 위한 필수 코드입니다."
             },
             {
               id: "pokemon.starter.gen2.totodile",
@@ -512,13 +478,22 @@ export const pokemonGroup: CheatGroup = {
               codes: []
             }
           ],
-          note: "L+SELECT를 동시에 누르세요. 등록된 편의 도구를 해제한 다음 실행하세요. 뮤와 테오키스는 야생 포켓몬 지정 출현으로 잡으면 사용할 수 없으므로 이 목록의 전투 전용 코드를 사용하세요."
+          note: "등록된 편의 도구를 해제한 다음 실행하세요. 뮤와 테오키스는 야생 포켓몬 지정 출현으로 잡으면 사용할 수 없으므로 이 목록의 전투 전용 코드를 사용하세요."
         }
       ]
     },
     {
       id: "pokemon.wild",
       title: "야생 포켓몬",
+      cheats: [
+        {
+          id: "pokemon.master-code",
+          title: "포켓몬 관련 마스터 코드",
+          codeType: "Action Replay MAX",
+          codes: [],
+          note: "포켓몬 관련 코드를 사용하려면 먼저 적용하세요."
+        }
+      ],
       children: [
         {
           id: "pokemon.wild.encounter",
@@ -634,7 +609,7 @@ export const pokemonGroup: CheatGroup = {
             },
             {
               id: "pokemon.wild.level.generated",
-              title: "야생 포켓몬 레벨 선택 (마스터 코드 필요)",
+              title: "야생 포켓몬 레벨 선택",
               codeType: "Codebreaker",
               codes: [],
               note: "원하는 레벨을 복사해 적용하세요. 특정 레벨은 1~100 중에서 선택할 수 있습니다.",
