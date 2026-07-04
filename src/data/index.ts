@@ -1,8 +1,14 @@
 import type { CheatBuildId, CheatGroup } from "../types/cheat";
-import { applyCheatCodeValues, getCatalogVariantCodes, getEntryCodes, getVariantCodes } from "./cheatDataBuilder";
+import {
+  applyCheatCodeValues,
+  applyCheatMetadata,
+  getCatalogVariantCodes,
+  getEntryCodes,
+  getVariantCodes,
+} from "./cheatDataBuilder";
 import type { CheatCodeValues } from "./cheatDataBuilder";
 
-const cheatStructureLoader = () => import("./cheatStructure").then((module) => module.cheatStructure);
+const cheatStructureLoader = () => import("./cheatStructure").then((module) => applyCheatMetadata(module.cheatStructure));
 
 const cheatCodeValueLoaders = {
   en: () => import("./codeValues/en").then((module) => module.cheatCodeValuesEn),

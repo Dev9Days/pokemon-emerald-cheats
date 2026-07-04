@@ -121,10 +121,29 @@ function applyEntryCodes(entry: CheatEntry, values: CheatCodeValues, rootGroupId
   return {
     ...entry,
     codes: getEntryCodes(entry, values),
-    badges: mergeCheatBadges(entry.badges, getEntryBadges(entry, rootGroupId)),
+    badges: getEntryMetadataBadges(entry, rootGroupId),
     variants: entry.variants?.map((variant) =>
       catalogSpec ? applyCatalogVariantCodes(variant, catalogSpec) : applyVariantCodes(variant, values),
     ),
+  };
+}
+
+function getEntryMetadataBadges(entry: CheatEntry, rootGroupId: string): CheatEntry["badges"] {
+  return mergeCheatBadges(entry.badges, getEntryBadges(entry, rootGroupId));
+}
+
+function applyEntryMetadata(entry: CheatEntry, rootGroupId: string): CheatEntry {
+  return {
+    ...entry,
+    badges: getEntryMetadataBadges(entry, rootGroupId),
+  };
+}
+
+function applyGroupMetadata(group: CheatGroup, rootGroupId = group.id): CheatGroup {
+  return {
+    ...group,
+    cheats: group.cheats?.map((entry) => applyEntryMetadata(entry, rootGroupId)),
+    children: group.children?.map((child) => applyGroupMetadata(child, rootGroupId)),
   };
 }
 
@@ -138,4 +157,8 @@ function applyGroupCodes(group: CheatGroup, values: CheatCodeValues, rootGroupId
 
 export function applyCheatCodeValues(structure: CheatGroup[], values: CheatCodeValues): CheatGroup[] {
   return structure.map((group) => applyGroupCodes(group, values));
+}
+
+export function applyCheatMetadata(structure: CheatGroup[]): CheatGroup[] {
+  return structure.map((group) => applyGroupMetadata(group));
 }
