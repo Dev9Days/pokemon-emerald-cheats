@@ -3,12 +3,20 @@ import type { CheatBuild, CheatBuildId } from "../types/cheat";
 type AppHeaderProps = {
   build: CheatBuild | null;
   builds: CheatBuild[];
+  isBuildLoading: boolean;
   onSelectBuild: (buildId: CheatBuildId) => void;
   onSelectRomFile: (file: File) => void;
   romStatus: string | null;
 };
 
-export function AppHeader({ build, builds, onSelectBuild, onSelectRomFile, romStatus }: AppHeaderProps) {
+export function AppHeader({
+  build,
+  builds,
+  isBuildLoading,
+  onSelectBuild,
+  onSelectRomFile,
+  romStatus,
+}: AppHeaderProps) {
   return (
     <header className="app-header">
       <div>
@@ -17,7 +25,14 @@ export function AppHeader({ build, builds, onSelectBuild, onSelectRomFile, romSt
       <div className="build-tools">
         {build ? (
           <label className="build-select">
-            <span>버전</span>
+            <span className="build-select__label">
+              <span>버전</span>
+              <span
+                className={`build-select__indicator${isBuildLoading ? " is-loading" : ""}`}
+                aria-label={isBuildLoading ? "버전 변경 중" : "버전 선택됨"}
+                role="status"
+              />
+            </span>
             <select value={build.id} onChange={(event) => onSelectBuild(event.target.value as CheatBuildId)}>
               {builds.map((item) => (
                 <option key={item.id} value={item.id}>

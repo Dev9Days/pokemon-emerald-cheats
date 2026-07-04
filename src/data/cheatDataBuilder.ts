@@ -52,10 +52,14 @@ const teleportValueById = new Map<string, string>(
   teleportLocationCatalog.map((location) => [location.id, location.value]),
 );
 
+export function getVariantCodes(variant: Pick<CheatVariant, "id">, values: CheatCodeValues): string[] {
+  return cloneCodes(values.variants[variant.id] ?? []);
+}
+
 function applyVariantCodes(variant: CheatVariant, values: CheatCodeValues): CheatVariant {
   return {
     ...variant,
-    codes: cloneCodes(values.variants[variant.id] ?? []),
+    codes: getVariantCodes(variant, values),
   };
 }
 
@@ -85,28 +89,30 @@ function getCatalogValue(spec: CatalogCodeValue, variantId: string) {
   return undefined;
 }
 
-function applyCatalogVariantCodes(variant: CheatVariant, spec: CatalogCodeValue): CheatVariant {
+export function getCatalogVariantCodes(variantId: string, spec: CatalogCodeValue): string[] {
   if (spec.kind === "nature") {
-    const natureCode = natureCodeById.get(getIdSuffix(variant.id));
-    return {
-      ...variant,
-      codes: natureCode ? [spec.baseCode, natureCode] : [],
-    };
+    const natureCode = natureCodeById.get(getIdSuffix(variantId));
+    return natureCode ? [spec.baseCode, natureCode] : [];
   }
 
   if (spec.kind === "starterPokemon") {
-    const pokemon = pokemonBySlug.get(getIdSuffix(variant.id));
-    return {
-      ...variant,
-      codes: pokemon ? [spec.slotCode, pokemon.starterCode] : [],
-    };
+    const pokemon = pokemonBySlug.get(getIdSuffix(variantId));
+    return pokemon ? [spec.slotCode, pokemon.starterCode] : [];
   }
 
-  const value = getCatalogValue(spec, variant.id);
+  const value = getCatalogValue(spec, variantId);
+  return value ? [`${spec.address} ${value}`, ...(spec.extraCodes ?? [])] : [];
+}
+
+function applyCatalogVariantCodes(variant: CheatVariant, spec: CatalogCodeValue): CheatVariant {
   return {
     ...variant,
-    codes: value ? [`${spec.address} ${value}`, ...(spec.extraCodes ?? [])] : [],
+    codes: getCatalogVariantCodes(variant.id, spec),
   };
+}
+
+export function getEntryCodes(entry: Pick<CheatEntry, "id">, values: CheatCodeValues): string[] {
+  return cloneCodes(values.entries[entry.id] ?? []);
 }
 
 function applyEntryCodes(entry: CheatEntry, values: CheatCodeValues, rootGroupId: string): CheatEntry {
@@ -114,7 +120,7 @@ function applyEntryCodes(entry: CheatEntry, values: CheatCodeValues, rootGroupId
 
   return {
     ...entry,
-    codes: cloneCodes(values.entries[entry.id] ?? []),
+    codes: getEntryCodes(entry, values),
     badges: mergeCheatBadges(entry.badges, getEntryBadges(entry, rootGroupId)),
     variants: entry.variants?.map((variant) =>
       catalogSpec ? applyCatalogVariantCodes(variant, catalogSpec) : applyVariantCodes(variant, values),

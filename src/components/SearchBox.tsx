@@ -1,43 +1,50 @@
 import { Search } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function SearchBox({
   query,
   onBlur,
-  onCompositionEnd,
-  onCompositionStart,
   onFocus,
-  onQueryChange,
+  onSearch,
 }: {
   query: string;
   onBlur?: () => void;
-  onCompositionEnd?: (query: string) => void;
-  onCompositionStart?: () => void;
   onFocus?: () => void;
-  onQueryChange: (query: string, isComposing: boolean) => void;
+  onSearch: (query: string) => void;
 }) {
+  const [draftQuery, setDraftQuery] = useState(query);
   const isComposingRef = useRef(false);
 
+  useEffect(() => {
+    setDraftQuery(query);
+  }, [query]);
+
   return (
-    <label className="search-box">
-      <Search size={18} />
+    <form
+      className="search-box"
+      role="search"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (isComposingRef.current) return;
+        onSearch(draftQuery);
+      }}
+    >
       <input
-        value={query}
-        onChange={(event) =>
-          onQueryChange(event.target.value, isComposingRef.current || (event.nativeEvent as InputEvent).isComposing)
-        }
+        value={draftQuery}
+        onChange={(event) => setDraftQuery(event.target.value)}
         onBlur={onBlur}
-        onCompositionEnd={(event) => {
+        onCompositionEnd={() => {
           isComposingRef.current = false;
-          onCompositionEnd?.(event.currentTarget.value);
         }}
         onCompositionStart={() => {
           isComposingRef.current = true;
-          onCompositionStart?.();
         }}
         onFocus={onFocus}
-        placeholder="치트명, 코드, 비고 검색"
+        placeholder="치트명, 비고 검색"
       />
-    </label>
+      <button type="submit" aria-label="검색">
+        <Search size={17} />
+      </button>
+    </form>
   );
 }

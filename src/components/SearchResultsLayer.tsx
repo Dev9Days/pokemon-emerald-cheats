@@ -3,16 +3,25 @@ import type { CheatGroup } from "../types/cheat";
 import { CheatGroupView } from "./CheatGroupView";
 
 type SearchResultsLayerProps = {
+  getEntryCodeText: (entryId: string) => Promise<string> | string;
+  getVariantCodeText: (entryId: string, variantId: string) => Promise<string> | string;
   groups: CheatGroup[];
   hasQuery: boolean;
   isSearching: boolean;
   resetKey: string;
 };
 
-export function SearchResultsLayer({ groups, hasQuery, isSearching, resetKey }: SearchResultsLayerProps) {
+export function SearchResultsLayer({
+  getEntryCodeText,
+  getVariantCodeText,
+  groups,
+  hasQuery,
+  isSearching,
+  resetKey,
+}: SearchResultsLayerProps) {
   const layerRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const canShowResults = isSearching && hasQuery;
+  const canRenderResults = hasQuery;
 
   useLayoutEffect(() => {
     if (!isSearching) return;
@@ -21,12 +30,10 @@ export function SearchResultsLayer({ groups, hasQuery, isSearching, resetKey }: 
 
     if (layer) layer.scrollTop = 0;
     if (scroller) scroller.scrollTop = 0;
-    window.scrollTo(window.scrollX, 0);
 
     const frameId = window.requestAnimationFrame(() => {
       if (layer) layer.scrollTop = 0;
       if (scroller) scroller.scrollTop = 0;
-      window.scrollTo(window.scrollX, 0);
     });
 
     return () => window.cancelAnimationFrame(frameId);
@@ -40,14 +47,19 @@ export function SearchResultsLayer({ groups, hasQuery, isSearching, resetKey }: 
     >
       <div className="search-results-scroller" ref={scrollerRef}>
         <div className="search-results-inner">
-          {canShowResults && groups.length > 0 ? (
+          {canRenderResults && groups.length > 0 ? (
             <div className="group-list group-list--search-results">
               {groups.map((group) => (
-                <CheatGroupView key={group.id} group={group} />
+                <CheatGroupView
+                  key={group.id}
+                  group={group}
+                  getEntryCodeText={getEntryCodeText}
+                  getVariantCodeText={getVariantCodeText}
+                />
               ))}
             </div>
           ) : null}
-          {canShowResults && groups.length === 0 ? <p className="empty-state">표시할 치트가 없습니다.</p> : null}
+          {canRenderResults && groups.length === 0 ? <p className="empty-state">표시할 치트가 없습니다.</p> : null}
         </div>
       </div>
     </div>

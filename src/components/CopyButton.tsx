@@ -1,5 +1,6 @@
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
+import { showToast } from "../utils/toast";
 
 async function copyText(text: string) {
   if (navigator.clipboard?.writeText && window.isSecureContext) {
@@ -30,16 +31,25 @@ async function copyText(text: string) {
   }
 }
 
-export function CopyButton({ label, text }: { label: string; text: string }) {
+type CopyButtonProps = {
+  getText?: () => Promise<string> | string;
+  label: string;
+  text?: string;
+};
+
+export function CopyButton({ getText, label, text = "" }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   async function copyCode() {
     try {
-      await copyText(text);
+      const nextText = getText ? await getText() : text;
+      await copyText(nextText);
       setCopied(true);
+      showToast({ message: "복사 완료", variant: "success" });
       window.setTimeout(() => setCopied(false), 1200);
     } catch {
       setCopied(false);
+      showToast({ message: "복사 실패", variant: "error" });
     }
   }
 

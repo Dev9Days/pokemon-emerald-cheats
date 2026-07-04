@@ -1,10 +1,13 @@
 import { Search } from "lucide-react";
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import type { CheatEntry, CheatVariant } from "../types/cheat";
 import { CopyButton } from "./CopyButton";
 
 const VARIANT_FILTER_THRESHOLD = 20;
 const VARIANT_SCROLL_THRESHOLD = 4;
+const PROGRESSIVE_VARIANT_THRESHOLD = 40;
+const INITIAL_VARIANT_COUNT = 24;
+const VARIANTS_PER_FRAME = 80;
 
 function CheatBadges({ badges }: { badges?: CheatEntry["badges"] }) {
   if (!badges?.length) return null;
@@ -24,9 +27,21 @@ function CheatBadges({ badges }: { badges?: CheatEntry["badges"] }) {
   );
 }
 
-const VariantRow = memo(function VariantRow({ variant }: { variant: CheatVariant }) {
-  const codeText = variant.codes.join("\n");
+type CheatCardProps = {
+  cheat: CheatEntry;
+  getEntryCodeText: (entryId: string) => Promise<string> | string;
+  getVariantCodeText: (entryId: string, variantId: string) => Promise<string> | string;
+};
 
+const VariantRow = memo(function VariantRow({
+  entryId,
+  getVariantCodeText,
+  variant,
+}: {
+  entryId: string;
+  getVariantCodeText: (entryId: string, variantId: string) => Promise<string> | string;
+  variant: CheatVariant;
+}) {
   return (
     <div className="variant-row">
       <div>
@@ -39,13 +54,19 @@ const VariantRow = memo(function VariantRow({ variant }: { variant: CheatVariant
         {variant.subtitle ? <span>{variant.subtitle}</span> : null}
         {variant.note ? <span>{variant.note}</span> : null}
       </div>
-      <CopyButton label={variant.title} text={codeText} />
+      <CopyButton
+        label={variant.title}
+        getText={() => getVariantCodeText(entryId, variant.id)}
+      />
     </div>
   );
 });
 
-export const CheatCard = memo(function CheatCard({ cheat }: { cheat: CheatEntry }) {
-  const codeText = cheat.codes.join("\n");
+export const CheatCard = memo(function CheatCard({
+  cheat,
+  getEntryCodeText,
+  getVariantCodeText,
+}: CheatCardProps) {
   const note = cheat.note?.trim();
   const [variantQuery, setVariantQuery] = useState("");
   const normalizedVariantQuery = variantQuery.trim().toLowerCase();
@@ -55,13 +76,53 @@ export const CheatCard = memo(function CheatCard({ cheat }: { cheat: CheatEntry 
     if (!cheat.variants || !normalizedVariantQuery) return cheat.variants;
 
     return cheat.variants.filter((variant) =>
-      [variant.id, variant.title, variant.subtitle, variant.note, ...variant.codes]
+      [variant.id, variant.title, variant.subtitle, variant.note]
         .filter(Boolean)
         .join("\n")
         .toLowerCase()
         .includes(normalizedVariantQuery),
     );
   }, [cheat.variants, normalizedVariantQuery]);
+  const [visibleVariantCount, setVisibleVariantCount] = useState(() =>
+    Math.min(variants?.length ?? 0, INITIAL_VARIANT_COUNT),
+  );
+  const shouldRenderVariantsProgressively = (variants?.length ?? 0) >= PROGRESSIVE_VARIANT_THRESHOLD;
+  const visibleVariants = shouldRenderVariantsProgressively
+    ? variants?.slice(0, visibleVariantCount)
+    : variants;
+
+  useEffect(() => {
+    const totalCount = variants?.length ?? 0;
+
+    if (!shouldRenderVariantsProgressively) {
+      setVisibleVariantCount(totalCount);
+      return;
+    }
+
+    let cancelled = false;
+    let frameId = 0;
+    let nextCount = Math.min(totalCount, INITIAL_VARIANT_COUNT);
+
+    setVisibleVariantCount(nextCount);
+
+    function renderMore() {
+      frameId = window.requestAnimationFrame(() => {
+        if (cancelled) return;
+
+        nextCount = Math.min(totalCount, nextCount + VARIANTS_PER_FRAME);
+        setVisibleVariantCount(nextCount);
+
+        if (nextCount < totalCount) renderMore();
+      });
+    }
+
+    if (nextCount < totalCount) renderMore();
+
+    return () => {
+      cancelled = true;
+      if (frameId) window.cancelAnimationFrame(frameId);
+    };
+  }, [shouldRenderVariantsProgressively, variants]);
 
   return (
     <article className="cheat-card">
@@ -73,7 +134,12 @@ export const CheatCard = memo(function CheatCard({ cheat }: { cheat: CheatEntry 
             <CheatBadges badges={cheat.badges} />
           </div>
         </div>
-        {!cheat.variants ? <CopyButton label={cheat.title} text={codeText} /> : null}
+        {!cheat.variants ? (
+          <CopyButton
+            label={cheat.title}
+            getText={() => getEntryCodeText(cheat.id)}
+          />
+        ) : null}
       </div>
       {cheat.variants ? (
         <>
@@ -96,8 +162,13 @@ export const CheatCard = memo(function CheatCard({ cheat }: { cheat: CheatEntry 
             role="list"
             aria-label={`${cheat.title} 코드 목록`}
           >
-            {variants?.map((variant) => (
-              <VariantRow key={variant.id} variant={variant} />
+            {visibleVariants?.map((variant) => (
+              <VariantRow
+                key={variant.id}
+                entryId={cheat.id}
+                getVariantCodeText={getVariantCodeText}
+                variant={variant}
+              />
             ))}
             {variants?.length === 0 ? <p className="variant-empty">검색 결과가 없습니다.</p> : null}
           </div>

@@ -4,16 +4,29 @@ import { getCheatCount, isSingleCheatGroup } from "../utils/cheats";
 import { CheatCard } from "./CheatCard";
 
 export const CheatGroupView = memo(function CheatGroupView({
+  getEntryCodeText,
+  getVariantCodeText,
   group,
   depth = 0,
   disableSectionId = false,
 }: {
+  getEntryCodeText: (entryId: string) => Promise<string> | string;
+  getVariantCodeText: (entryId: string, variantId: string) => Promise<string> | string;
   group: CheatGroup;
   depth?: number;
   disableSectionId?: boolean;
 }) {
   if (depth > 0 && isSingleCheatGroup(group)) {
-    return group.cheats?.map((cheat) => <CheatCard key={cheat.id} cheat={cheat} />) ?? null;
+    return (
+      group.cheats?.map((cheat) => (
+        <CheatCard
+          key={cheat.id}
+          cheat={cheat}
+          getEntryCodeText={getEntryCodeText}
+          getVariantCodeText={getVariantCodeText}
+        />
+      )) ?? null
+    );
   }
 
   const cheatCount = getCheatCount([group]);
@@ -26,9 +39,23 @@ export const CheatGroupView = memo(function CheatGroupView({
         <span className="group-count">{cheatCount}</span>
       </Heading>
       <div className="group-body">
-        {group.cheats?.map((cheat) => <CheatCard key={cheat.id} cheat={cheat} />)}
+        {group.cheats?.map((cheat) => (
+          <CheatCard
+            key={cheat.id}
+            cheat={cheat}
+            getEntryCodeText={getEntryCodeText}
+            getVariantCodeText={getVariantCodeText}
+          />
+        ))}
         {group.children?.map((child) => (
-          <CheatGroupView key={child.id} group={child} depth={depth + 1} disableSectionId={disableSectionId} />
+          <CheatGroupView
+            key={child.id}
+            group={child}
+            depth={depth + 1}
+            disableSectionId={disableSectionId}
+            getEntryCodeText={getEntryCodeText}
+            getVariantCodeText={getVariantCodeText}
+          />
         ))}
       </div>
     </section>

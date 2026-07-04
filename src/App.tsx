@@ -1,24 +1,38 @@
 import type { CSSProperties } from "react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AppHeader } from "./components/AppHeader";
 import { BuildLoadingOverlay } from "./components/BuildLoadingOverlay";
 import { BrowserToolbar } from "./components/BrowserToolbar";
 import { BuildSelector } from "./components/BuildSelector";
-import { CheatGroupView } from "./components/CheatGroupView";
 import { CommentsButton } from "./components/CommentsButton";
 import { CommentsPanel } from "./components/CommentsPanel";
 import { MobileSectionOverlay } from "./components/MobileSectionOverlay";
+import { ProgressiveCheatGroupList } from "./components/ProgressiveCheatGroupList";
 import { RomDropOverlay } from "./components/RomDropOverlay";
 import { SearchResultsLayer } from "./components/SearchResultsLayer";
 import { SectionNav } from "./components/SectionNav";
+import { Toast } from "./components/Toast";
 import { builds } from "./data/builds";
-import { getCheatsForBuild } from "./data";
-import type { CheatBuildId } from "./types/cheat";
+import {
+  getCheatStructure,
+  getEntryCodesForBuild,
+  getVariantCodesForBuild,
+  preloadCheatStructure,
+} from "./data";
+import { useBodyScrollLock } from "./hooks/useBodyScrollLock";
+import { useSubmittedSearch } from "./hooks/useSubmittedSearch";
+import type { CheatBuildId, CheatGroup } from "./types/cheat";
 import { filterGroups, getSectionNavItems } from "./utils/cheats";
-import { detectRomBuild } from "./utils/romBuildDetector";
 import { isProgrammaticSectionScroll, scrollToSection } from "./utils/sectionScroll";
 
 const STORAGE_KEY = "pokemon-emerald-cheats:selected-build";
+const BUILD_LOADING_OVERLAY_DELAY_MS = 150;
+const SEARCH_RESULTS_CLEANUP_DELAY_MS = 180;
+
+type NetworkInformationLike = {
+  effectiveType?: string;
+  saveData?: boolean;
+};
 
 function getInitialBuild(): CheatBuildId | null {
   const saved = localStorage.getItem(STORAGE_KEY) as CheatBuildId | null;
@@ -26,41 +40,73 @@ function getInitialBuild(): CheatBuildId | null {
 }
 
 export function App() {
-  const [selectedBuild, setSelectedBuild] = useState<CheatBuildId | null>(getInitialBuild);
-  const [query, setQuery] = useState("");
-  const [filterQuery, setFilterQuery] = useState("");
+  const initialBuildRef = useRef<CheatBuildId | null>(getInitialBuild());
+  const [selectedBuild, setSelectedBuild] = useState<CheatBuildId | null>(initialBuildRef.current);
+  const [groups, setGroups] = useState<CheatGroup[]>([]);
+  const [warmedBuildId, setWarmedBuildId] = useState<CheatBuildId | null>(null);
+  const [warmedGroups, setWarmedGroups] = useState<CheatGroup[]>([]);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [isMobileOverlayOpen, setIsMobileOverlayOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [isBuildPending, setIsBuildPending] = useState(false);
   const [isBuildLoading, setIsBuildLoading] = useState(false);
   const [buildLoadingLabel, setBuildLoadingLabel] = useState<string | null>(null);
-  const [isSearchSessionActive, setIsSearchSessionActive] = useState(false);
+  const [isInitialBuildLoading, setIsInitialBuildLoading] = useState(false);
   const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
   const [isRomDragging, setIsRomDragging] = useState(false);
   const [romStatus, setRomStatus] = useState<string | null>(null);
   const [toolbarHeight, setToolbarHeight] = useState(0);
   const buildLoadTokenRef = useRef(0);
+  const pendingBuildRenderTokenRef = useRef<number | null>(null);
+  const currentBuildIdRef = useRef<CheatBuildId | null>(null);
   const dragDepthRef = useRef(0);
+  const isBuildLoadingActiveRef = useRef(false);
+  const loadingOverlayTimerRef = useRef<number | null>(null);
+  const warmRenderTokenRef = useRef(0);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
+  const warmToolbarRef = useRef<HTMLDivElement | null>(null);
+  const {
+    hasFilterQuery,
+    isSearchActive,
+    normalizedFilterQuery,
+    query,
+    resetSearch,
+    submitSearch,
+  } = useSubmittedSearch(SEARCH_RESULTS_CLEANUP_DELAY_MS);
 
   const build = selectedBuild ? builds.find((item) => item.id === selectedBuild)! : null;
-  const groups = useMemo(() => (selectedBuild ? getCheatsForBuild(selectedBuild) : []), [selectedBuild]);
-  const normalizedFilterQuery = filterQuery.trim().toLowerCase();
-  const hasFilterQuery = normalizedFilterQuery.length > 0;
-  const hasSearchText = query.trim().length > 0 || hasFilterQuery;
-  const isSearchActive = isSearchSessionActive && hasSearchText;
+  const warmedBuild = warmedBuildId ? builds.find((item) => item.id === warmedBuildId)! : null;
   const filteredGroups = useMemo(() => (hasFilterQuery ? filterGroups(groups, normalizedFilterQuery) : []), [
     hasFilterQuery,
     groups,
     normalizedFilterQuery,
   ]);
-  const displayedGroups = isSearchActive ? filteredGroups : groups;
-  const sectionNavItems = useMemo(() => getSectionNavItems(displayedGroups), [displayedGroups]);
+  const sectionNavItems = useMemo(() => getSectionNavItems(groups), [groups]);
+  const warmedSectionNavItems = useMemo(() => getSectionNavItems(warmedGroups), [warmedGroups]);
   const activeSectionTitle =
     sectionNavItems.find((item) => item.id === activeSectionId)?.title ?? sectionNavItems[0]?.title ?? "분류";
+
+  const getEntryCodeText = useCallback(async (entryId: string) => {
+    const buildId = currentBuildIdRef.current;
+    if (!buildId) return "";
+    return (await getEntryCodesForBuild(buildId, entryId)).join("\n");
+  }, []);
+
+  const getVariantCodeText = useCallback(async (entryId: string, variantId: string) => {
+    const buildId = currentBuildIdRef.current;
+    if (!buildId) return "";
+    return (await getVariantCodesForBuild(buildId, entryId, variantId)).join("\n");
+  }, []);
+
   useEffect(() => {
     setActiveSectionId(sectionNavItems[0]?.id ?? null);
   }, [sectionNavItems]);
+
+  useEffect(() => {
+    const initialBuild = initialBuildRef.current;
+    initialBuildRef.current = null;
+    if (initialBuild) void loadBuild(initialBuild, { persist: false, resetView: false, showOverlay: false });
+  }, []);
 
   useEffect(() => {
     if (sectionNavItems.length === 0) return;
@@ -139,6 +185,29 @@ export function App() {
     };
   }, [isMobileSearchFocused, isSearchActive]);
 
+  useBodyScrollLock(isSearchActive);
+
+  useEffect(() => {
+    return () => {
+      if (loadingOverlayTimerRef.current !== null) window.clearTimeout(loadingOverlayTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const connection = (navigator as Navigator & { connection?: NetworkInformationLike }).connection;
+    const isSlowConnection = connection?.saveData || ["slow-2g", "2g"].includes(connection?.effectiveType ?? "");
+    if (selectedBuild || isSlowConnection) return;
+
+    let cancelled = false;
+    void nextPaint().then(() => {
+      if (!cancelled) void warmRenderBuild(builds[0].id);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBuild]);
+
   useEffect(() => {
     function hasFiles(event: DragEvent) {
       return Array.from(event.dataTransfer?.types ?? []).includes("Files");
@@ -190,32 +259,63 @@ export function App() {
   }, []);
 
   function selectBuild(buildId: CheatBuildId) {
+    void loadBuild(buildId, { persist: true, resetView: true, showOverlay: true });
+  }
+
+  async function loadBuild(
+    buildId: CheatBuildId,
+    options: { persist: boolean; resetView: boolean; showOverlay: boolean },
+  ) {
     const nextBuild = builds.find((item) => item.id === buildId);
     const token = buildLoadTokenRef.current + 1;
     buildLoadTokenRef.current = token;
-    setBuildLoadingLabel(nextBuild ? `${nextBuild.label} 불러오는 중` : "치트 목록 불러오는 중");
-    setIsBuildLoading(true);
-    resetSearch();
-    setIsMobileOverlayOpen(false);
-    setIsMobileSearchFocused(false);
+    const label = nextBuild ? `${nextBuild.label} 불러오는 중` : "치트 목록 불러오는 중";
+    setBuildLoadingLabel(label);
+    setIsBuildPending(true);
+    setIsInitialBuildLoading(!options.showOverlay);
+    if (options.showOverlay) showBuildLoading(label);
 
-    window.requestAnimationFrame(() => {
+    if (options.resetView) {
+      resetSearch();
+      setIsMobileOverlayOpen(false);
+      setIsMobileSearchFocused(false);
+    }
+
+    await nextPaint();
+    if (buildLoadTokenRef.current !== token) return;
+
+    try {
+      const nextGroups = warmedGroups.length > 0 ? warmedGroups : await getCheatStructure();
       if (buildLoadTokenRef.current !== token) return;
 
-      localStorage.setItem(STORAGE_KEY, buildId);
+      currentBuildIdRef.current = buildId;
+      pendingBuildRenderTokenRef.current = !options.showOverlay && nextGroups.length > 0 ? token : null;
+      setGroups(nextGroups);
       setSelectedBuild(buildId);
-
-      window.requestAnimationFrame(() => {
-        if (buildLoadTokenRef.current !== token) return;
-        setIsBuildLoading(false);
-      });
-    });
+      if (options.persist) localStorage.setItem(STORAGE_KEY, buildId);
+      await nextPaint();
+    } catch {
+      if (buildLoadTokenRef.current === token) {
+        pendingBuildRenderTokenRef.current = null;
+        currentBuildIdRef.current = null;
+        setGroups([]);
+        setSelectedBuild(null);
+        if (options.persist) localStorage.removeItem(STORAGE_KEY);
+      }
+    } finally {
+      if (buildLoadTokenRef.current === token) {
+        if (pendingBuildRenderTokenRef.current === null) setIsBuildPending(false);
+        setIsInitialBuildLoading(false);
+        stopBuildLoading();
+      }
+    }
   }
 
   async function selectBuildFromRomFile(file: File) {
     setRomStatus("ROM 확인 중...");
 
     try {
+      const { detectRomBuild } = await import("./utils/romBuildDetector");
       const result = await detectRomBuild(file, builds);
 
       if (!result.matched) {
@@ -235,46 +335,74 @@ export function App() {
     scrollToSection(id, () => setActiveSectionId(id));
   }
 
-  function resetSearch() {
-    setIsSearchSessionActive(false);
-    setQuery("");
-    setFilterQuery("");
+  function showBuildLoading(label: string) {
+    setBuildLoadingLabel(label);
+    if (isBuildLoadingActiveRef.current) return;
+
+    if (loadingOverlayTimerRef.current !== null) window.clearTimeout(loadingOverlayTimerRef.current);
+    loadingOverlayTimerRef.current = window.setTimeout(() => {
+      loadingOverlayTimerRef.current = null;
+      isBuildLoadingActiveRef.current = true;
+      setIsBuildLoading(true);
+    }, BUILD_LOADING_OVERLAY_DELAY_MS);
   }
 
-  function handleSearchQueryChange(nextQuery: string, isComposing: boolean) {
-    const nextFilterQuery = nextQuery.trim();
-
-    setQuery(nextQuery);
-
-    if (nextFilterQuery.length > 0) {
-      setIsSearchSessionActive(true);
-    } else if (!isComposing) {
-      setIsSearchSessionActive(false);
+  function stopBuildLoading() {
+    if (loadingOverlayTimerRef.current !== null) {
+      window.clearTimeout(loadingOverlayTimerRef.current);
+      loadingOverlayTimerRef.current = null;
     }
 
-    if (!isComposing) {
-      setFilterQuery(nextFilterQuery);
-    }
+    isBuildLoadingActiveRef.current = false;
+    setIsBuildLoading(false);
   }
 
-  function handleSearchCompositionEnd(nextQuery: string) {
-    const nextFilterQuery = nextQuery.trim();
+  const handleBuildRenderComplete = useCallback(() => {
+    if (pendingBuildRenderTokenRef.current !== buildLoadTokenRef.current) return;
 
-    setQuery(nextQuery);
-    setFilterQuery(nextFilterQuery);
+    pendingBuildRenderTokenRef.current = null;
+    setIsBuildPending(false);
+  }, []);
 
-    if (nextFilterQuery.length > 0) {
-      setIsSearchSessionActive(true);
-    } else {
-      setIsSearchSessionActive(false);
-    }
+  async function warmRenderBuild(buildId: CheatBuildId) {
+    if (selectedBuild || (warmedBuildId === buildId && warmedGroups.length > 0)) return;
+
+    const token = warmRenderTokenRef.current + 1;
+    warmRenderTokenRef.current = token;
+    await preloadCheatStructure();
+    const nextGroups = await getCheatStructure();
+    await nextPaint();
+    if (warmRenderTokenRef.current !== token || selectedBuild) return;
+
+    setWarmedGroups(nextGroups);
+    setWarmedBuildId(buildId);
   }
+
+  function nextPaint() {
+    return new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    });
+  }
+
+  function handleSearchSubmit(nextQuery: string) {
+    submitSearch(nextQuery);
+    if (nextQuery.trim().length === 0) setIsMobileSearchFocused(false);
+  }
+
+  const browserBuild = build ?? warmedBuild;
+  const browserGroups = build ? groups : warmedGroups;
+  const browserSectionNavItems = build ? sectionNavItems : warmedSectionNavItems;
+  const browserActiveSectionTitle = build ? activeSectionTitle : (warmedSectionNavItems[0]?.title ?? "분류");
+  const isBrowserVisible = Boolean(build);
 
   return (
     <main className="app-shell" style={{ "--toolbar-height": `${toolbarHeight}px` } as CSSProperties}>
       <AppHeader
         build={build}
         builds={builds}
+        isBuildLoading={isBuildPending}
         onSelectBuild={selectBuild}
         onSelectRomFile={(file) => void selectBuildFromRomFile(file)}
         romStatus={romStatus}
@@ -282,22 +410,26 @@ export function App() {
 
       {!build ? (
         <BuildSelector builds={builds} onSelectBuild={selectBuild} />
-      ) : (
-        <section className="browser-shell" aria-label={`${build.label} 치트 목록`}>
+      ) : null}
+
+      {browserBuild ? (
+        <section
+          className={`browser-shell${isBrowserVisible ? "" : " browser-shell--prewarm"}`}
+          aria-hidden={!isBrowserVisible}
+          aria-label={`${browserBuild.label} 치트 목록`}
+        >
           <BrowserToolbar
-            activeSectionTitle={activeSectionTitle}
+            activeSectionTitle={browserActiveSectionTitle}
             isInputFocused={isMobileSearchFocused}
             isSearching={isSearchActive}
             onClearSearch={resetSearch}
             onOpenComments={() => setIsCommentsOpen(true)}
             onOpenNavigation={() => setIsMobileOverlayOpen(true)}
-            onQueryChange={handleSearchQueryChange}
-            onSearchCompositionEnd={handleSearchCompositionEnd}
-            onSearchCompositionStart={() => setIsSearchSessionActive(true)}
             onSearchBlur={() => setIsMobileSearchFocused(false)}
             onSearchFocus={() => setIsMobileSearchFocused(true)}
+            onSearch={handleSearchSubmit}
             query={query}
-            toolbarRef={toolbarRef}
+            toolbarRef={isBrowserVisible ? toolbarRef : warmToolbarRef}
           />
           <div
             className="toolbar-spacer"
@@ -307,17 +439,28 @@ export function App() {
 
           <div className="browser-layout">
             <div className="group-list">
-              {groups.map((group) => (
-                <CheatGroupView key={group.id} group={group} />
-              ))}
+              {isInitialBuildLoading && browserGroups.length === 0 ? (
+                <p className="empty-state">{buildLoadingLabel ?? "치트 목록 불러오는 중"}</p>
+              ) : (
+                <ProgressiveCheatGroupList
+                  key="browse"
+                  groups={browserGroups}
+                  isProgressive={pendingBuildRenderTokenRef.current !== null}
+                  getEntryCodeText={getEntryCodeText}
+                  getVariantCodeText={getVariantCodeText}
+                  onRenderComplete={isBrowserVisible ? handleBuildRenderComplete : undefined}
+                />
+              )}
             </div>
-            {groups.length > 0 ? (
-              <SectionNav items={sectionNavItems} activeId={activeSectionId} onNavigate={navigateToSection} />
+            {browserGroups.length > 0 ? (
+              <SectionNav items={browserSectionNavItems} activeId={activeSectionId} onNavigate={navigateToSection} />
             ) : null}
           </div>
 
           <SearchResultsLayer
             groups={filteredGroups}
+            getEntryCodeText={getEntryCodeText}
+            getVariantCodeText={getVariantCodeText}
             hasQuery={hasFilterQuery}
             isSearching={isSearchActive}
             resetKey={normalizedFilterQuery}
@@ -326,8 +469,8 @@ export function App() {
           {isMobileOverlayOpen ? (
             <MobileSectionOverlay
               activeId={activeSectionId}
-              activeTitle={activeSectionTitle}
-              items={sectionNavItems}
+              activeTitle={browserActiveSectionTitle}
+              items={browserSectionNavItems}
               onClose={() => setIsMobileOverlayOpen(false)}
               onNavigate={navigateToSection}
             />
@@ -335,9 +478,10 @@ export function App() {
           <CommentsButton onClick={() => setIsCommentsOpen(true)} />
           <CommentsPanel isOpen={isCommentsOpen} onClose={() => setIsCommentsOpen(false)} />
         </section>
-      )}
+      ) : null}
       <RomDropOverlay isActive={isRomDragging} />
       <BuildLoadingOverlay isActive={isBuildLoading} label={buildLoadingLabel} />
+      <Toast />
     </main>
   );
 }

@@ -124,7 +124,7 @@ const countBaseline = new Map();
 const requiredCodeValueKeys = getRequiredCodeValueKeys(cheatStructure);
 
 for (const build of builds) {
-  const groups = getCheatsForBuild(build.id);
+  const groups = await getCheatsForBuild(build.id);
   const codeValues = codeValuesByBuild[build.id];
   const missingCodeValues = codeValues ? getMissingCodeValues(requiredCodeValueKeys, codeValues) : null;
 

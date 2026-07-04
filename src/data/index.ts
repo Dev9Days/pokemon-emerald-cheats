@@ -1,27 +1,87 @@
 import type { CheatBuildId, CheatGroup } from "../types/cheat";
-import { applyCheatCodeValues } from "./cheatDataBuilder";
-import { cheatCodeValuesEn } from "./codeValues/en";
-import { cheatCodeValuesKr20240611 } from "./codeValues/kr-20240611";
-import { cheatCodeValuesKr20240611Modern } from "./codeValues/kr-20240611-modern";
-import { cheatCodeValuesKr20260613 } from "./codeValues/kr-20260613";
-import { cheatStructure } from "./cheatStructure";
+import { applyCheatCodeValues, getCatalogVariantCodes, getEntryCodes, getVariantCodes } from "./cheatDataBuilder";
+import type { CheatCodeValues } from "./cheatDataBuilder";
 
-const cheatCodeValuesByBuild = {
-  en: cheatCodeValuesEn,
-  "kr-20240611": cheatCodeValuesKr20240611,
-  "kr-20240611-modern": cheatCodeValuesKr20240611Modern,
-  "kr-20260613": cheatCodeValuesKr20260613,
-} satisfies Partial<Record<CheatBuildId, unknown>>;
+const cheatStructureLoader = () => import("./cheatStructure").then((module) => module.cheatStructure);
+
+const cheatCodeValueLoaders = {
+  en: () => import("./codeValues/en").then((module) => module.cheatCodeValuesEn),
+  "kr-20240611": () =>
+    import("./codeValues/kr-20240611").then((module) => module.cheatCodeValuesKr20240611),
+  "kr-20240611-modern": () =>
+    import("./codeValues/kr-20240611-modern").then((module) => module.cheatCodeValuesKr20240611Modern),
+  "kr-20260613": () =>
+    import("./codeValues/kr-20260613").then((module) => module.cheatCodeValuesKr20260613),
+} satisfies Partial<Record<CheatBuildId, () => Promise<CheatCodeValues>>>;
 
 const cheatCache = new Map<CheatBuildId, CheatGroup[]>();
+const cheatPromiseCache = new Map<CheatBuildId, Promise<CheatGroup[]>>();
+const codeValuePromiseCache = new Map<CheatBuildId, Promise<CheatCodeValues | null>>();
+const codeValueCache = new Map<CheatBuildId, CheatCodeValues | null>();
+let cheatStructurePromise: Promise<CheatGroup[]> | null = null;
 
-export function getCheatsForBuild(buildId: CheatBuildId): CheatGroup[] {
+export function preloadCheatStructure(): Promise<CheatGroup[]> {
+  cheatStructurePromise ??= cheatStructureLoader();
+  return cheatStructurePromise;
+}
+
+export async function getCheatsForBuild(buildId: CheatBuildId): Promise<CheatGroup[]> {
   const cached = cheatCache.get(buildId);
   if (cached) return cached;
 
-  const codeValues = cheatCodeValuesByBuild[buildId as keyof typeof cheatCodeValuesByBuild];
-  const groups = codeValues ? applyCheatCodeValues(cheatStructure, codeValues) : [];
-  cheatCache.set(buildId, groups);
-  return groups;
+  const cachedPromise = cheatPromiseCache.get(buildId);
+  if (cachedPromise) return cachedPromise;
+
+  const loadCodeValues = cheatCodeValueLoaders[buildId as keyof typeof cheatCodeValueLoaders];
+  const cheatPromise = Promise.all([preloadCheatStructure(), loadCodeValues ? loadCodeValues() : null])
+    .then(([cheatStructure, codeValues]) => {
+      const groups = codeValues ? applyCheatCodeValues(cheatStructure, codeValues) : [];
+      cheatCache.set(buildId, groups);
+      return groups;
+    })
+    .catch((error) => {
+      cheatPromiseCache.delete(buildId);
+      throw error;
+    });
+
+  cheatPromiseCache.set(buildId, cheatPromise);
+  return cheatPromise;
 }
 
+export function getCheatStructure(): Promise<CheatGroup[]> {
+  return preloadCheatStructure();
+}
+
+export async function getCodeValuesForBuild(buildId: CheatBuildId): Promise<CheatCodeValues | null> {
+  if (codeValueCache.has(buildId)) return codeValueCache.get(buildId) ?? null;
+
+  const cachedPromise = codeValuePromiseCache.get(buildId);
+  if (cachedPromise) return cachedPromise;
+
+  const loadCodeValues = cheatCodeValueLoaders[buildId as keyof typeof cheatCodeValueLoaders];
+  const promise = (loadCodeValues ? loadCodeValues() : Promise.resolve(null))
+    .then((values) => {
+      codeValueCache.set(buildId, values);
+      return values;
+    })
+    .catch((error) => {
+      codeValuePromiseCache.delete(buildId);
+      throw error;
+    });
+
+  codeValuePromiseCache.set(buildId, promise);
+  return promise;
+}
+
+export async function getEntryCodesForBuild(buildId: CheatBuildId, entryId: string): Promise<string[]> {
+  const values = await getCodeValuesForBuild(buildId);
+  return values ? getEntryCodes({ id: entryId }, values) : [];
+}
+
+export async function getVariantCodesForBuild(buildId: CheatBuildId, entryId: string, variantId: string): Promise<string[]> {
+  const values = await getCodeValuesForBuild(buildId);
+  if (!values) return [];
+
+  const catalogSpec = values.catalogs?.[entryId];
+  return catalogSpec ? getCatalogVariantCodes(variantId, catalogSpec) : getVariantCodes({ id: variantId }, values);
+}
