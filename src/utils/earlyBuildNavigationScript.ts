@@ -1,7 +1,7 @@
 export const earlyBuildNavigationScript = `
 (() => {
   const key = "emerald:selected-build";
-  const legacyKeys = ["pokemon-cheats:selected-build", "pokemon-emerald-cheats:selected-build"];
+  const legacyKey = "pokemon-emerald-cheats:selected-build";
   const hydratedKey = "__pokemonEmeraldCheatsHydrated";
   const loadingDelayMs = 150;
   const allowed = new Set(["en", "kr-20240611", "kr-20240611-modern", "kr-20260613"]);
@@ -58,9 +58,7 @@ export const earlyBuildNavigationScript = `
   function persistBuild(build) {
     try {
       window.localStorage.setItem(key, build);
-      for (const legacyKey of legacyKeys) {
-        window.localStorage.removeItem(legacyKey);
-      }
+      window.localStorage.removeItem(legacyKey);
     } catch {
     }
   }
@@ -70,12 +68,10 @@ export const earlyBuildNavigationScript = `
       const build = window.localStorage.getItem(key);
       if (build) return build;
 
-      for (const legacyKey of legacyKeys) {
-        const legacyBuild = window.localStorage.getItem(legacyKey);
-        if (legacyBuild) {
-          persistBuild(legacyBuild);
-          return legacyBuild;
-        }
+      const legacyBuild = window.localStorage.getItem(legacyKey);
+      if (legacyBuild) {
+        persistBuild(legacyBuild);
+        return legacyBuild;
       }
 
       return null;
