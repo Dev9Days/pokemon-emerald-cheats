@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Dev9Days" }],
   alternates: {
-    canonical: "/emerald/cheats",
+    canonical: "/emerald/cheats/",
   },
   icons: {
     icon: "/favicon.ico",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     siteName: "포켓몬스터 에메랄드 치트",
     title,
     description,
-    url: "/emerald/cheats",
+    url: "/emerald/cheats/",
     images: [
       {
         url: "/og-image.png",

@@ -12,8 +12,11 @@ type VersionPageProps = {
 };
 
 const fallbackMetadata: Metadata = {
+  alternates: {
+    canonical: "/emerald/cheats/",
+  },
   robots: {
-    index: true,
+    index: false,
     follow: true,
   },
 };
@@ -33,7 +36,7 @@ export async function generateMetadata({ params }: VersionPageProps): Promise<Me
     title,
     description,
     alternates: {
-      canonical: `/emerald/cheats/${selectedBuild.id}`,
+      canonical: "/emerald/cheats/",
     },
     openGraph: {
       type: "website",
@@ -41,7 +44,7 @@ export async function generateMetadata({ params }: VersionPageProps): Promise<Me
       siteName: "포켓몬스터 에메랄드 치트",
       title,
       description,
-      url: `/emerald/cheats/${selectedBuild.id}`,
+      url: "/emerald/cheats/",
       images: [
         {
           url: "/og-image.png",
@@ -59,7 +62,7 @@ export async function generateMetadata({ params }: VersionPageProps): Promise<Me
       images: ["/og-image.png"],
     },
     robots: {
-      index: true,
+      index: false,
       follow: true,
     },
   };
