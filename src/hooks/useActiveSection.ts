@@ -40,7 +40,6 @@ export function useActiveSection(sectionNavItems: SectionNavItem[]) {
       frameId = window.requestAnimationFrame(updateActiveSection);
     }
 
-    updateActiveSection();
     window.addEventListener("scroll", requestUpdate, { passive: true });
     window.addEventListener("resize", requestUpdate);
 
