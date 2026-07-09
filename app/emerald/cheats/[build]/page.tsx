@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { App } from "../../../../src/App";
 import { getCheatStructure } from "../../../../src/data";
 import { builds } from "../../../../src/data/builds";
+import { seoDescription, seoTitle } from "../../../../src/seo";
 import type { CheatBuildId } from "../../../../src/types/cheat";
 
 type VersionPageProps = {
@@ -29,36 +30,33 @@ export async function generateMetadata({ params }: VersionPageProps): Promise<Me
     return fallbackMetadata;
   }
 
-  const title = `${selectedBuild.label} 포켓몬스터 에메랄드 치트`;
-  const description = `${selectedBuild.label} 포켓몬스터 에메랄드 치트 모음입니다. 해당 버전에 맞는 치트키와 치트 코드를 검색하고 복사할 수 있습니다.`;
-
   return {
-    title,
-    description,
+    title: seoTitle,
+    description: seoDescription,
     alternates: {
       canonical: "/emerald/cheats/",
     },
     openGraph: {
       type: "website",
       locale: "ko_KR",
-      siteName: "포켓몬스터 에메랄드 치트",
-      title,
-      description,
+      siteName: seoTitle,
+      title: seoTitle,
+      description: seoDescription,
       url: "/emerald/cheats/",
       images: [
         {
           url: "/og-image.png",
           width: 1200,
           height: 630,
-          alt: "포켓몬스터 에메랄드 치트",
+          alt: seoTitle,
           type: "image/png",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: seoTitle,
+      description: seoDescription,
       images: ["/og-image.png"],
     },
     robots: {
