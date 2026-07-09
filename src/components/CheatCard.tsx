@@ -46,7 +46,7 @@ const VariantRow = memo(function VariantRow({
   variant: CheatVariant;
 }) {
   return (
-    <div className="variant-row">
+    <div className="variant-row" role="listitem">
       <div>
         <strong>{variant.title}</strong>
         {variant.badges?.length ? (

@@ -1,17 +1,17 @@
 import { App } from "../../../src/App";
 import { getCheatStructure } from "../../../src/data";
+import { seoDescription, seoTitle, siteUrl } from "../../../src/seo";
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "포켓몬스터 에메랄드 치트",
+  name: seoTitle,
   alternateName: "Pokemon Emerald Cheats",
-  url: "https://pokemon.9days.dev/emerald/cheats/",
+  url: `${siteUrl}/emerald/cheats/`,
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Any",
   inLanguage: "ko-KR",
-  description:
-    "포켓몬스터 에메랄드 치트 모음입니다. 영문판과 한글패치, 한글판 버전에 맞는 치트키를 검색하고 복사할 수 있습니다.",
+  description: seoDescription,
   offers: {
     "@type": "Offer",
     price: "0",
