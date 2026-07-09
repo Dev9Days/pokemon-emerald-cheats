@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: VersionPageProps): Promise<Me
     title,
     description,
     alternates: {
-      canonical: `/emerald/cheats/${selectedBuild.id}`,
+      canonical: `/emerald/cheats/${selectedBuild.id}/`,
     },
     openGraph: {
       type: "website",
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: VersionPageProps): Promise<Me
       siteName: "포켓몬스터 에메랄드 치트",
       title,
       description,
-      url: `/emerald/cheats/${selectedBuild.id}`,
+      url: `/emerald/cheats/${selectedBuild.id}/`,
       images: [
         {
           url: "/og-image.png",

@@ -1,1 +1,1 @@
-export { default } from "../emerald/cheats/page";
+export { default, metadata } from "../page";

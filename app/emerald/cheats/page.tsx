@@ -6,7 +6,7 @@ const jsonLd = {
   "@type": "WebApplication",
   name: "포켓몬스터 에메랄드 치트",
   alternateName: "Pokemon Emerald Cheats",
-  url: "https://pokemon.9days.dev/emerald/cheats",
+  url: "https://pokemon.9days.dev/emerald/cheats/",
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Any",
   inLanguage: "ko-KR",
